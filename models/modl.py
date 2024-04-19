@@ -1,6 +1,38 @@
 import torch
 import torch.nn as nn
 from utils import r2c, c2r
+import numpy as np
+
+def sketch_generate(n_coil, v=4, s=2):
+    idv = torch.eye(v)
+    var = 1 / s if s != 0 else 0
+    scoil = torch.normal(0, var, size=(s, n_coil-v))
+    zero1, zero2 = torch.zeros((s, v)), torch.zeros((v, n_coil-v))
+
+    row1 = torch.cat([idv, zero2], dim=1)
+    row2 = torch.cat([zero1, scoil], dim=1)
+    sketch0 = torch.cat([row1, row2], dim=0)
+    return sketch0
+
+def sketch_Radon(n_coil, v=4, s=2):
+    idv = torch.eye(v)
+    var = 1 / s if s != 0 else 0
+    scoil = torch.normal(0, var, size=(s, n_coil-v))
+    zero1, zero2 = torch.zeros((s, v)), torch.zeros((v, n_coil-v))
+    Radonlist = [-1, 1]
+    possibility = [0.5, 0.5]
+    scoil = np.random.choice(Radonlist, size=(s, n_coil-v), p=possibility)
+    scoil = torch.tensor(scoil)
+    row1 = torch.cat([idv, zero2], dim=1)
+    row2 = torch.cat([zero1, scoil], dim=1)
+    sketch0 = torch.cat([row1, row2], dim=0)
+
+    return sketch0
+
+def sketch_comb(smaps, sketch):
+    # csm: coil sensitivity map (B, ncoil, nrow, ncol) - complex64
+    return (sketch @ smaps.reshape(smaps.shape[1], -1)).reshape((sketch.shape[1], )+smaps.shape[1:])
+
 
 #CNN denoiser ======================
 def conv_block(in_channels, out_channels):
@@ -99,7 +131,7 @@ class MoDL(nn.Module):
         self.dw = cnn_denoiser(n_layers)
         self.dc = data_consistency()
 
-    def forward(self, x0, csm, mask):
+    def forward(self, x0, csm, mask, V, S, nc_init=5):
         """
         :x0: zero-filled reconstruction (B, 2, nrow, ncol) - float32
         :csm: coil sensitivity map (B, ncoil, nrow, ncol) - complex64
@@ -107,9 +139,13 @@ class MoDL(nn.Module):
         """
         
         x_k = x0.clone()
+        n_coil = csm.shape[1]
         for k in range(self.k_iters):
-            #dw 
+            #dw
+            sketch = sketch_Radon(n_coil, V, S)
+            coil_sketched = sketch_comb(n_coil, sketch)
             z_k = self.dw(x_k) # (2, nrow, ncol)
-            #dc
-            x_k = self.dc(z_k, x0, csm, mask) # (2, nrow, ncol)
+            # dc
+            # x_k = self.dc(z_k, x0, csm, mask) # (2, nrow, ncol)
+            x_k = self.dc(z_k, x0, coil_sketched, mask) # (2, nrow, ncol)
         return x_k

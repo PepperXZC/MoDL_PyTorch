@@ -191,7 +191,8 @@ def ssim_batch(y_batch, y_pred_batch):
 
 def ssim(y, y_pred):
     from skimage.metrics import structural_similarity
-    return structural_similarity(y, y_pred)
+    # print(y.shape, y_pred.shape, y.dtype, y_pred.dtype, )
+    return structural_similarity(y, y_pred, data_range=1)
 
 def mse(y, y_pred):
     return np.mean((y-y_pred)**2)

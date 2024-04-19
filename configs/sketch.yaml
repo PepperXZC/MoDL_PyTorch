@@ -1,8 +1,8 @@
-config_name: base_modl,k=1
-description: "base config, k=1"
+config_name: sketch
+description: "base config, k=10. Restore weights from <sketch>"
 
 n_layers: 5
-k_iters: 1
+k_iters: 10
 epochs: 50
 
 dataset_name: modl_dataset
@@ -14,7 +14,8 @@ batch_size: 1
 
 model_name: base_modl
 
-restore_weights: False #False, best, inter, final
+restore_weights: final #False, best, inter, final
+# restore_path: 'workspace/sketch/checkpoints/'
 restore_path: 
 
 loss_name: MSE

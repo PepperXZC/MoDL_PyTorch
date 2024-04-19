@@ -9,6 +9,7 @@ from get_instances import *
 
 def setup(args):
     config_path = args.config
+    # print(torch.cuda.is_available())
     with open(config_path, "r") as fr:
         configs = yaml.load(fr, Loader=yaml.FullLoader)
     device = 'cuda'
@@ -95,6 +96,7 @@ def main(args):
     if args.seed:
         set_seeds(args.seed)
 
+    print(model)
     for epoch in range(start_epoch, epochs):
         for phase in phases: #['train', 'val'] or ['train']
             running_score = defaultdict(int)
@@ -160,7 +162,8 @@ def main(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("--config", type=str, required=False, default="configs/base_modl,k=1.yaml",
+    # parser.add_argument("--config", type=str, required=False, default="configs/base_modl,k=10.yaml",
+    parser.add_argument("--config", type=str, required=True, default="configs/sketch.yaml",
                         help="config file path")
     parser.add_argument("--workspace", type=str, default='./workspace')
     parser.add_argument("--tensorboard_dir", type=str, default='./runs')

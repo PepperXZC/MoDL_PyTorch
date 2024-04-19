@@ -7,7 +7,7 @@ epochs: 50
 
 dataset_name: modl_dataset
 dataset_params:
-  dataset_path: 'data/dataset.hdf5'
+  dataset_path: '/data/xzc/data/dataset.hdf5'
   sigma: 0.01
 val_data: False
 batch_size: 1
@@ -15,7 +15,7 @@ batch_size: 1
 model_name: base_modl
 
 restore_weights: final #False, best, inter, final
-restore_path: 'workspace/base_modl,k=1/checkpoints/'
+restore_path: 'workspace/sketch/checkpoints/'
 
 loss_name: MSE
 score_names: ['PSNR', 'SSIM']
